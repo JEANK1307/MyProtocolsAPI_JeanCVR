@@ -12,7 +12,7 @@ namespace MyProtocolsAPI_JeanCVR.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [ApiKey]
+    //[ApiKey]
     public class UsersController : ControllerBase
     {
         private readonly MyProtocolsDBContext _context;
@@ -20,6 +20,22 @@ namespace MyProtocolsAPI_JeanCVR.Controllers
         public UsersController(MyProtocolsDBContext context)
         {
             _context = context;
+        }
+
+        //Este get valida el usuario que se quiere ingresar en la app.
+        //GET: api/Users
+        [HttpGet("ValidateLogin")]
+        public async Task<ActionResult<User>> ValidateLogin(string username, string password)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(e => e.Email == username &&
+            e.Password == password);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user);
         }
 
         // GET: api/Users
