@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyProtocolsAPI_JeanCVR.Attributes;
 using MyProtocolsAPI_JeanCVR.Models;
+using MyProtocolsAPI_JeanCVR.ModelsDTOs;
 
 namespace MyProtocolsAPI_JeanCVR.Controllers
 {
@@ -66,6 +67,68 @@ namespace MyProtocolsAPI_JeanCVR.Controllers
 
             return user;
         }
+
+
+        [HttpGet("GetUserInfoByEmail")]
+        public ActionResult<IEnumerable<UserDTO>> GetUserInfoByEmail(string Pemail)
+        {
+            //acá creamos un linq que combina información de 2 entidades
+            //(user inner join userrole) y la agrega en el objeto dto de usuario
+
+            var query = (from u in _context.Users
+                         join ur in _context.UserRoles on 
+                         u.UserRoleId equals ur.UserRoleId
+                         where u.Email == Pemail && u.Active == true &&
+                         u.IsBlocked == false
+                         select new
+                         {
+                             idUsuario = u.UserId,
+                             correo = u.Email,
+                             contrasennia = u.Password,
+                             nombre = u.Name,
+                             correoRespaldo = u.BackUpEmail,
+                             telefono = u.PhoneNumber,
+                             direccion = u.Address,
+                             activo = u.Active,
+                             establoqueado = u.IsBlocked,
+                             idrol = ur.UserRoleId,
+                             descripcionrol = ur.Description
+                         }).ToList();
+
+            //Creamos un objeto del tipo que retorna la función en este caso (LIST)
+            List<UserDTO> list = new List<UserDTO>();
+            
+            foreach (var item in query)
+            {
+                UserDTO NewItem = new UserDTO()
+                {
+                    IDUsuario = item.idUsuario,
+                    Correo = item.correo,
+                    Contrasennia = item.contrasennia,
+                    CorreoRespaldo = item.correoRespaldo,
+                    Telefono = item.telefono,
+                    Direccion = item.direccion,
+                    Activo = item.activo,
+                    EstaBloqueado = item.establoqueado,
+                    IDRol = item.idrol,
+                    DescripcionRol = item.descripcionrol,
+                    Nombre = item.nombre
+                };
+
+                list.Add(NewItem);
+
+            }
+
+            if (list == null)
+            {
+                return NotFound();
+            }
+
+            return list;
+
+
+        }
+
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
