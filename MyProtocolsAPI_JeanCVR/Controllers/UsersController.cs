@@ -133,14 +133,29 @@ namespace MyProtocolsAPI_JeanCVR.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, UserDTO user)
         {
-            if (id != user.UserId)
+            if (id != user.IDUsuario)
             {
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
+            //Tenemos que hacer la convercion entre el DTO que llega en formato
+            //json (en el header) y el objeto entity framework entiende que es de 
+            //tipo User
+
+            User? NewEFUser = GetUserByID(id);
+            if (NewEFUser != null)
+            {
+                NewEFUser.Email = user.Correo;
+                NewEFUser.Name = user.Nombre;
+                NewEFUser.BackUpEmail = user.CorreoRespaldo;
+                NewEFUser.PhoneNumber = user.Telefono;
+                NewEFUser.Address = user.Direccion;
+
+
+                _context.Entry(NewEFUser).State = EntityState.Modified;
+            }
 
             try
             {
@@ -158,7 +173,7 @@ namespace MyProtocolsAPI_JeanCVR.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // POST: api/Users
@@ -179,6 +194,13 @@ namespace MyProtocolsAPI_JeanCVR.Controllers
         private bool UserExists(int id)
         {
             return (_context.Users?.Any(e => e.UserId == id)).GetValueOrDefault();
+        }
+
+        private User? GetUserByID(int id)
+        {
+            var user = _context.Users.Find(id);
+
+            return user;
         }
     }
 }
