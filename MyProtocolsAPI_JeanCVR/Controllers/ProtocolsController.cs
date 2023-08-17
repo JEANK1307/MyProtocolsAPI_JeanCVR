@@ -51,6 +51,26 @@ namespace MyProtocolsAPI_JeanCVR.Controllers
             return protocol;
         }
 
+        // GET: api/Protocols/GetProtocolListByUser?id=2
+        //Pensando en colecciones observables esta función podría entregar un enumerable
+        //(obviamente usamos su interface)
+        [HttpGet("GetProtocolListByUser")]
+        public async Task<ActionResult<IEnumerable<Protocol>>> GetProtocolListByUser(int id)
+        {
+            if (_context.Protocols == null)
+            {
+                return NotFound();
+            }
+            var protocolList = await _context.Protocols.Where(p => p.UserId.Equals(id)).ToListAsync();
+
+            if (protocolList == null)
+            {
+                return NotFound();
+            }
+
+            return protocolList;
+        }
+
         // PUT: api/Protocols/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
